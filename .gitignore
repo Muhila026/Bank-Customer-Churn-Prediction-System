@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.Python
+Backend/venv/
+*.egg-info/
+.eggs/
+
+# Logs
+*.log
+debug.log
+
+# Node
+Frontend/node_modules/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Build / cache
+Frontend/dist/
+*.local
