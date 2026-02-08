@@ -15,18 +15,20 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parent
 MODEL_DIR = PROJECT_ROOT / "Model"
+FIGURES_DIR = PROJECT_ROOT / "figures_1"
 MODEL_NAMES = ["XGBoost", "Gradient Boosting", "Decision Tree"]
 
 # ----- CI-master style: load from Model/<name>/ -----
 models = {}
 model_metrics = {}
-# Try Model/metrics.json first, then project root metrics.json (legacy)
-for metrics_path in [MODEL_DIR / "metrics.json", PROJECT_ROOT / "metrics.json"]:
+# Try Model/metrics.json, then model/metrics.json (legacy), then project root
+for metrics_path in [MODEL_DIR / "metrics.json", PROJECT_ROOT / "model" / "metrics.json", PROJECT_ROOT / "metrics.json"]:
     try:
         with open(metrics_path) as f:
             model_metrics = json.load(f)
@@ -58,11 +60,12 @@ for name in MODEL_NAMES:
 legacy_loaded = False
 if all(models.get(n) is None for n in MODEL_NAMES):
     def _pkl_path(n: str) -> Path:
-        for base in (PROJECT_ROOT, BASE_DIR):
+        # Prefer model/ folder, then project root, then backend dir
+        for base in (PROJECT_ROOT / "model", PROJECT_ROOT, BASE_DIR):
             p = base / n
             if p.exists():
                 return p
-        return PROJECT_ROOT / n
+        return PROJECT_ROOT / "model" / n
 
     PREPROCESSING_PATH = _pkl_path("preprocessing.pkl")
     MODEL_XGB_PATH = _pkl_path("model_xgb.pkl")
@@ -157,6 +160,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+if FIGURES_DIR.exists():
+    app.mount("/figures", StaticFiles(directory=str(FIGURES_DIR)), name="figures")
+
 
 class PredictRequest(BaseModel):
     CreditScore: float = Field(..., ge=0, le=1000, description="Credit score (0-1000)")
@@ -211,21 +217,24 @@ def get_model_info():
 
 @app.get("/model-metrics")
 def get_model_metrics():
-    """Return accuracy % and ROC-AUC per model (for frontend display)."""
+    """Return accuracy % and ROC-AUC per model, plus best model by ROC-AUC."""
     out = {}
+    best_name = None
+    best_roc = -1.0
     for name in MODEL_NAMES:
         m = model_metrics.get(name)
         if m is None:
             out[name] = {}
             continue
         m = dict(m)
-        # Ensure accuracy_pct is present for frontend (0–100)
-        if "accuracy_pct" in m:
-            pass
-        elif "accuracy" in m and m["accuracy"] is not None:
+        if "accuracy_pct" not in m and "accuracy" in m and m["accuracy"] is not None:
             m["accuracy_pct"] = round(float(m["accuracy"]) * 100, 2)
+        roc = m.get("roc_auc")
+        if roc is not None and float(roc) > best_roc:
+            best_roc = float(roc)
+            best_name = name
         out[name] = m
-    return {"models": out}
+    return {"models": out, "best_model": best_name}
 
 
 @app.get("/models/status")
