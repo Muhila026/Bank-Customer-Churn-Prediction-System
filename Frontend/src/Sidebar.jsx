@@ -1,9 +1,5 @@
 const MODEL_NAMES = ['XGBoost', 'Gradient Boosting', 'Decision Tree']
 
-const navItems = [
-  { id: 'predict', label: 'Predict churn', icon: 'predict' },
-]
-
 const SidebarLogo = () => (
   <div className="sidebar-logo" aria-hidden="true">
     <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -15,7 +11,59 @@ const SidebarLogo = () => (
   </div>
 )
 
-export default function Sidebar({ isOpen, onClose, modelMetrics }) {
+const NavIcon = ({ id }) => {
+  if (id === 'home') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    )
+  }
+  if (id === 'predict') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+        <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" fill="none" />
+      </svg>
+    )
+  }
+  if (id === 'charts') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    )
+  }
+  if (id === 'access') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    )
+  }
+  if (id === 'chat') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    )
+  }
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+export default function Sidebar({ isOpen, onClose, navItems = [], currentPage, onNavigate, modelMetrics, bestModel }) {
+  const handleNav = (id) => {
+    onNavigate?.(id)
+    onClose?.()
+  }
   return (
     <>
       <div
@@ -51,14 +99,11 @@ export default function Sidebar({ isOpen, onClose, modelMetrics }) {
               <button
                 key={item.id}
                 type="button"
-                className="sidebar-nav-item sidebar-nav-item--active"
-                onClick={onClose}
+                className={`sidebar-nav-item ${currentPage === item.id ? 'sidebar-nav-item--active' : ''}`}
+                onClick={() => handleNav(item.id)}
               >
                 <span className="sidebar-nav-icon" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                    <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" fill="none" />
-                  </svg>
+                  <NavIcon id={item.id} />
                 </span>
                 <span>{item.label}</span>
               </button>
@@ -73,9 +118,13 @@ export default function Sidebar({ isOpen, onClose, modelMetrics }) {
                 const rocPct = m?.roc_auc != null ? m.roc_auc * 100 : null
                 const pct = accPct ?? rocPct
                 const showAccuracy = accPct != null
+                const isBest = name === bestModel
                 return (
-                  <div key={name} className="sidebar-metric-item">
-                    <span className="sidebar-metric-name">{name}</span>
+                  <div key={name} className={`sidebar-metric-item ${isBest ? 'sidebar-metric-item--best' : ''}`}>
+                    <span className="sidebar-metric-name">
+                      {name}
+                      {isBest && <span className="sidebar-metric-best">Best</span>}
+                    </span>
                     <span className="sidebar-metric-value">{pct != null ? `${typeof pct === 'number' ? pct.toFixed(2) : pct}%` : '—'}</span>
                     <span className="sidebar-metric-desc">{showAccuracy ? 'Accuracy' : rocPct != null ? 'ROC-AUC' : '—'}</span>
                     {showAccuracy && rocPct != null && (

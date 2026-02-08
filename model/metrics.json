@@ -1,0 +1,14 @@
+{
+  "XGBoost": {
+    "accuracy": 0.861,
+    "roc_auc": 0.847
+  },
+  "Gradient Boosting": {
+    "accuracy": 0.862,
+    "roc_auc": 0.851
+  },
+  "Decision Tree": {
+    "accuracy": 0.831,
+    "roc_auc": 0.758
+  }
+}
